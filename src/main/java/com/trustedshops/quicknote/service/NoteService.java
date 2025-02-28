@@ -15,6 +15,10 @@ public class NoteService {
         this.noteRepository = noteRepository;
     }
 
+    public void deleteAllNotes() {
+        noteRepository.deleteAll();
+    }
+
     public List<Note> getNotes() {
         return noteRepository.findAll();
     }
