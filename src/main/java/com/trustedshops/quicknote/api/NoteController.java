@@ -1,8 +1,7 @@
 package com.trustedshops.quicknote.api;
 
-import com.trustedshops.quicknote.exception.NoteNotFoundException;
-import com.trustedshops.quicknote.NoteRepository;
 import com.trustedshops.quicknote.entity.Note;
+import com.trustedshops.quicknote.service.NoteService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,41 +12,29 @@ import java.util.List;
 
 @RestController
 public class NoteController {
-    private final NoteRepository noteRepository;
+    private final NoteService noteService;
 
-    public NoteController(NoteRepository noteRepository) {
-        this.noteRepository = noteRepository;
+    public NoteController(NoteService noteService) {
+        this.noteService = noteService;
     }
 
     @GetMapping("/notes")
     public List<Note> getNotes() {
-        return noteRepository.findAll();
+        return noteService.getNotes();
     }
 
     @GetMapping("/notes/{slug}")
     public Note getNoteBySlug(@PathVariable String slug) {
-        return noteRepository.findBySlug(slug)
-                .orElseThrow(() -> new NoteNotFoundException("note not found for slug: " + slug));
+        return noteService.getNoteBySlug(slug);
     }
 
     @PostMapping("/notes/{slug}")
     public void addOrUpdateNote(@PathVariable String slug, @RequestBody String text) {
-        noteRepository.findBySlug(slug).ifPresentOrElse(
-                note -> {
-                    note.setText(text);
-                    noteRepository.save(note);
-                },
-                () -> noteRepository.save(new Note(slug, text))
-        );
+        noteService.addOrUpdateNote(slug, text);
     }
 
     @DeleteMapping("/notes/{slug}")
     public void deleteNoteBySlug(@PathVariable String slug) {
-        noteRepository.findBySlug(slug).ifPresentOrElse(
-                noteRepository::delete,
-                () -> {
-                    throw new NoteNotFoundException("note not found for slug: " + slug);
-                }
-        );
+        noteService.deleteNoteBySlug(slug);
     }
 }
